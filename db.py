@@ -19,10 +19,11 @@ def _get_db_file_exists() -> bool:
 
 
 def create_db():
+    db_path = _get_db_path()
+    
     if _get_db_file_exists():
         raise Exception('Cannot create db: %s already exists' % db_path)
 
-    db_path = _get_db_path()
     conn = sqlite3.connect(db_path)
     conn.executescript('''
     CREATE TABLE USERS (
