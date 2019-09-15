@@ -1,6 +1,9 @@
 import pwd
+import sqlite3
 import subprocess
 from typing import List
+
+import libs.db
 
 
 SMB_GROUPS = [
@@ -58,6 +61,7 @@ def _set_smb_password(username: str, password: str):
                    check=True)
 
 
+# noinspection PyUnusedLocal
 def add_user(username: str, password: str, force_create: bool =False,
              extra_smb_groups: List[str] =None, no_default_smb_group: bool =False, **kwargs):
     """Add user
@@ -65,21 +69,11 @@ def add_user(username: str, password: str, force_create: bool =False,
     Args:
         username: username
         password: password
-        force_create: update user when it already exists; by default, it fails
         extra_smb_groups: extra groups besides default samba group to add
         no_default_smb_group: do not include default samba group; by default, it includes
     """
-    if force_create:
-        if _check_user_exists(username):
-            mod_user(
-                username=username,
-                password=password,
-                extra_smb_groups=extra_smb_groups,
-                no_default_smb_group=no_default_smb_group
-            )
-    else:
-        if _check_user_exists(username):
-            raise Exception('Cannot create user %s: already exists' % username)
+    if _check_user_exists(username):
+        raise Exception('Cannot create user %s: already exists' % username)
 
     if extra_smb_groups is None:
         extra_smb_groups = []
@@ -99,6 +93,7 @@ def add_user(username: str, password: str, force_create: bool =False,
         raise
 
 
+# noinspection PyUnusedLocal
 def mod_user(username: str, password: str =None,
              extra_smb_groups: List[str] =None, no_default_smb_group: bool = False, **kwargs):
     """Modify user
@@ -141,3 +136,66 @@ def mod_user(username: str, password: str =None,
 
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
         raise
+
+
+# noinspection PyUnusedLocal
+def apply_user(username: str, password: str,
+               extra_smb_groups: List[str] =None, no_default_smb_group: bool =False, **kwargs):
+    """Add user or modify user
+
+    Args:
+        username: username
+        password: password
+        extra_smb_groups: extra groups besides default samba group to add
+        no_default_smb_group: do not include default samba group; by default, it includes
+    """
+    if _check_user_exists(username):
+        mod_user(username=username,
+                 password=password,
+                 extra_smb_groups=extra_smb_groups,
+                 no_default_smb_group=no_default_smb_group)
+    else:
+        add_user(username=username,
+                 password=password if password is not None else '',
+                 extra_smb_groups=extra_smb_groups,
+                 no_default_smb_group=no_default_smb_group)
+
+
+def _db_check_user_exists(conn: sqlite3.Connection, username: str) -> bool:
+    try:
+        cur = conn.execute('SELECT uid FROM USERS WHERE username=?', (username,))
+        uid = int(cur.fetchone()[0])
+        cur.execute('SELECT COUNT(*) FROM SAMBA WHERE uid=?', (uid,))
+        return int(cur.fetchone()[0]) == 1
+    except conn.Error:
+        raise
+    except TypeError:
+        # probably uid is not found (cur.fetchone() is None)
+        return False
+
+
+def db_init_table(conn: sqlite3.Connection):
+    conn.executescript('''
+        CREATE TABLE SAMBA (
+            uid       INTEGER UNIQUE NOT NULL,
+            groups    VARCHAR(127) NOT NULL,
+            FOREIGN KEY(uid) REFERENCES USERS(uid)
+        );
+        ''')
+
+
+# noinspection PyUnusedLocal
+def db_apply_user(conn: sqlite3.Connection, username: str, uid: int = None, samba_grps: List[str] = None, **kwargs):
+    if uid is not None:
+        uid = libs.db.get_uid(username)
+
+    if _db_check_user_exists(conn, username):
+        # update user
+        if samba_grps is not None:
+            conn.execute('''UPDATE SAMBA
+                SET groups=? WHERE uid=?''', (','.join(samba_grps), uid))
+    else:
+        # insert user
+        conn.execute('''INSERT INTO
+            SAMBA  (uid, groups)
+            VALUES (?,?)''', (uid, ','.join(samba_grps) if samba_grps else ''))
