@@ -91,8 +91,11 @@ def apply_user(username: str, password: str = None, fullname: str = None, email:
             # update user
             uid = get_uid(username)
             if password is not None:
-                conn.execute('''UPDATE USERS
-                       SET password=? WHERE uid=?''', (password, uid))
+                conn.execute('''UPDATE USERS SET password=? WHERE uid=?''', (password, uid))
+            if fullname is not None:
+                conn.execute('''UPDATE USERS SET fullname=? WHERE uid=?''', (fullname, uid))
+            if email is not None:
+                conn.execute('''UPDATE USERS SET email=? WHERE uid=?''', (email, uid))
         else:
             # insert user
             if fullname is None:

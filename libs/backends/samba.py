@@ -192,10 +192,12 @@ def db_apply_user(conn: sqlite3.Connection, username: str, uid: int = None, samb
     if _db_check_user_exists(conn, username):
         # update user
         if samba_grps is not None:
-            conn.execute('''UPDATE SAMBA
-                SET groups=? WHERE uid=?''', (','.join(samba_grps), uid))
+            conn.execute('''UPDATE SAMBA SET groups=? WHERE uid=?''', (','.join(samba_grps), uid))
     else:
         # insert user
+        if samba_grps is None:
+            raise ValueError('samba groups are empty')
+
         conn.execute('''INSERT INTO
             SAMBA  (uid, groups)
             VALUES (?,?)''', (uid, ','.join(samba_grps) if samba_grps else ''))
