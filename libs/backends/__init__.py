@@ -28,12 +28,16 @@ def _get_backends():
     return _backends
 
 
+def apply_user(username: str, **kwargs):
+    for backend_mod in _get_backends():
+        backend_mod.apply_user(username=username, **kwargs)
+
+
 def db_init_tables(conn: sqlite3.Connection):
     for backend_mod in _get_backends():
         backend_mod.db_init_table(conn)
 
 
-# noinspection PyUnusedLocal
 def db_apply_user(conn: sqlite3.Connection, username: str, uid: int = None, **kwargs):
     for backend_mod in _get_backends():
         backend_mod.db_apply_user(conn, username=username, uid=uid, **kwargs)

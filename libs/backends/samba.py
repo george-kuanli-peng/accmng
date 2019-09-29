@@ -139,7 +139,7 @@ def mod_user(username: str, password: str =None,
 
 
 # noinspection PyUnusedLocal
-def apply_user(username: str, password: str,
+def apply_user(username: str, password: str =None,
                extra_smb_groups: List[str] =None, no_default_smb_group: bool =False, **kwargs):
     """Add user or modify user
 

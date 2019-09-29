@@ -55,3 +55,8 @@ def create_user_action(username: str, action_type: UserAction, parm: str = None,
     conn.execute('''INSERT INTO
         WEB_USER_ACTION (uid, action_type, create_time, valid_until, parm)
         VALUES (?,?,?,?,?)''')
+
+
+# noinspection PyUnusedLocal
+def apply_user(username: str, **kwargs):
+    pass
