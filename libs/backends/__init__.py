@@ -2,12 +2,13 @@ import importlib.util
 import libs.config
 import os.path
 import re
+import sqlite3
 
 
 _backends = None
 
 
-def get_backends():
+def _get_backends():
     global _backends
 
     if _backends is not None:
@@ -25,3 +26,14 @@ def get_backends():
         spec.loader.exec_module(mod)
         _backends.append(mod)
     return _backends
+
+
+def db_init_tables(conn: sqlite3.Connection):
+    for backend_mod in _get_backends():
+        backend_mod.db_init_table(conn)
+
+
+# noinspection PyUnusedLocal
+def db_apply_user(conn: sqlite3.Connection, username: str, uid: int = None, **kwargs):
+    for backend_mod in _get_backends():
+        backend_mod.db_apply_user(conn, username=username, uid=uid, **kwargs)

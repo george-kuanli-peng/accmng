@@ -39,8 +39,7 @@ def init_db():
     );
     ''')
 
-    for backend_mod in backends.get_backends():
-        backend_mod.db_init_table(conn)
+    backends.db_init_tables(conn)
 
     conn.commit()
     conn.close()
@@ -112,8 +111,7 @@ def apply_user(username: str, password: str = None, fullname: str = None, email:
                     USERS  (username, fullname, email, password)
                     VALUES (?,?,?,?)''', (username, fullname, email, password)).lastrowid
 
-        for backend_mod in backends.get_backends():
-            backend_mod.db_apply_user(conn, username=username, uid=uid, **kwargs)
+        backends.db_apply_user(conn, username=username, uid=uid, **kwargs)
 
         conn.commit()
     except (conn.Error, ValueError):
