@@ -34,8 +34,7 @@ def init_db():
         uid       INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         username  VARCHAR(63) UNIQUE NOT NULL,
         fullname  VARCHAR(63) NOT NULL,
-        email     VARCHAR(127) NOT NULL,
-        password  VARCHAR NOT NULL
+        email     VARCHAR(127) NOT NULL
     );
     ''')
 
@@ -84,7 +83,7 @@ def get_uid(username: str) -> int:
     return uid
 
 
-def apply_user(username: str, password: str = None, fullname: str = None, email: str = None, **kwargs):
+def apply_user(username: str, fullname: str = None, email: str = None, **kwargs):
     # TODO: encrypt password
     conn = get_db_conn()
 
@@ -94,8 +93,6 @@ def apply_user(username: str, password: str = None, fullname: str = None, email:
         if _check_user_exists(username):
             # update user
             uid = get_uid(username)
-            if password is not None:
-                conn.execute('''UPDATE USERS SET password=? WHERE uid=?''', (password, uid))
             if fullname is not None:
                 conn.execute('''UPDATE USERS SET fullname=? WHERE uid=?''', (fullname, uid))
             if email is not None:
@@ -108,8 +105,8 @@ def apply_user(username: str, password: str = None, fullname: str = None, email:
                 raise ValueError('email is empty')
 
             uid = conn.execute('''INSERT INTO
-                    USERS  (username, fullname, email, password)
-                    VALUES (?,?,?,?)''', (username, fullname, email, password)).lastrowid
+                    USERS  (username, fullname, email)
+                    VALUES (?,?,?,?)''', (username, fullname, email)).lastrowid
 
         backends.db_apply_user(conn, username=username, uid=uid, **kwargs)
 
