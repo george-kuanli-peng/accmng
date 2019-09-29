@@ -17,15 +17,20 @@ def _check_db_file_exists() -> bool:
     return os.path.isfile(db_path)
 
 
-def create_db():
+def init_db():
+    """Create new DB if it does not exist; create new DB table if it does not exist"""
     db_path = _get_db_path()
 
     if _check_db_file_exists():
-        raise Exception('Cannot create db: %s already exists' % db_path)
+        # TODO: logging
+        print('DB files %s already exists; reuse the current one.' % db_path)
+    else:
+        # TODO: logging
+        print('DB file %s does not exist; create a new one.' % db_path)
 
     conn = sqlite3.connect(db_path)
     conn.executescript('''
-    CREATE TABLE USERS (
+    CREATE TABLE IF NOT EXISTS USERS (
         uid       INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         username  VARCHAR(63) UNIQUE NOT NULL,
         fullname  VARCHAR(63) NOT NULL,
@@ -41,7 +46,7 @@ def create_db():
     conn.close()
 
 
-def _get_db_conn() -> sqlite3.Connection:
+def get_db_conn() -> sqlite3.Connection:
     global __db_conn
 
     if __db_conn:
@@ -56,7 +61,7 @@ def _get_db_conn() -> sqlite3.Connection:
     raise Exception('Cannot open db: %s does not exist' % db_path)
 
 
-def _close_db_conn():
+def close_db_conn():
     global __db_conn
     if __db_conn:
         __db_conn.close()
@@ -64,7 +69,7 @@ def _close_db_conn():
 
 
 def _check_user_exists(username: str) -> bool:
-    conn = _get_db_conn()
+    conn = get_db_conn()
 
     try:
         cur = conn.execute('SELECT COUNT(*) FROM USERS WHERE username=?', (username,))
@@ -75,14 +80,14 @@ def _check_user_exists(username: str) -> bool:
 
 
 def get_uid(username: str) -> int:
-    conn = _get_db_conn()
+    conn = get_db_conn()
     uid = conn.execute('SELECT uid FROM USERS WHERE username=?', (username,)).fetchone()[0]
     return uid
 
 
 def apply_user(username: str, password: str = None, fullname: str = None, email: str = None, **kwargs):
     # TODO: encrypt password
-    conn = _get_db_conn()
+    conn = get_db_conn()
 
     try:
         conn.execute('BEGIN')

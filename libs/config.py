@@ -10,7 +10,10 @@ def init_config(path):
 
     if not __config:
         __config = configparser.ConfigParser()
+        # TODO: logging
+        print('Read config file: ' + path)
         __config.read(path)
+        # TODO: required attributes checking
 
 
 def get_value(section: str, option: str):

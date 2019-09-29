@@ -176,7 +176,7 @@ def _db_check_user_exists(conn: sqlite3.Connection, username: str) -> bool:
 
 def db_init_table(conn: sqlite3.Connection):
     conn.executescript('''
-        CREATE TABLE SAMBA (
+        CREATE TABLE IF NOT EXISTS SAMBA (
             uid       INTEGER UNIQUE NOT NULL,
             groups    VARCHAR(127) NOT NULL,
             FOREIGN KEY(uid) REFERENCES USERS(uid)

@@ -1,6 +1,7 @@
 import importlib.util
 import libs.config
 import os.path
+import re
 
 
 _backends = None
@@ -14,7 +15,7 @@ def get_backends():
 
     _backends = []
     backends_root = os.path.abspath(os.path.dirname(__file__))
-    for mod_sec in libs.config.get_value('SYSTEM', 'ENABLE_MODULES').split():
+    for mod_sec in re.split(r'\s*[,]\s*', libs.config.get_value('SYSTEM', 'ENABLE_MODULES')):
         mod_name = libs.config.get_value(mod_sec, 'MOD_NAME')
         spec = importlib.util.spec_from_file_location(
             'libs.backends.' + mod_name,

@@ -1,0 +1,6 @@
+{% extends "user_base.html" %}
+{% block title %}錯誤{% endblock %}
+{% block content %}
+<h1>發生錯誤</h1>
+{% if e.msg is defined %}<p>{{ e.msg }}</p>
+{% endblock%}
