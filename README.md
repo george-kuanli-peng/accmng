@@ -16,6 +16,16 @@ pip install -r requirements.txt
 
 ## Execution
 
+The simplest form:
+
 ```bash
-FLASK_APP=app.py python -m flask run --host=0.0.0.0
+python app.py
+```
+
+I will search the config file "config.ini" at the current execution directory first, or else at the program's (app.py) directory.
+
+To specify another config file name or location:
+
+```bash
+python app.py --config_file=CUSTOM_CONFIG_FILE_PATH
 ```
