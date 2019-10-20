@@ -84,7 +84,6 @@ def get_uid(username: str) -> int:
 
 
 def apply_user(username: str, fullname: str = None, email: str = None, **kwargs):
-    # TODO: encrypt password
     conn = get_db_conn()
 
     try:

@@ -1,3 +1,4 @@
+import crypt
 import pwd
 import sqlite3
 import subprocess
@@ -82,6 +83,7 @@ def add_user(username: str, password: str, force_create: bool =False,
         # create user
         smb_groups = _get_smb_groups(extra_smb_groups, no_default_smb_group)
         subprocess.run(['sudo', 'useradd',
+                        '-p', crypt.crypt(password),
                         '--no-create-home',
                         '-s', '/usr/sbin/nologin',
                         '-G', ','.join(smb_groups),
@@ -112,8 +114,8 @@ def mod_user(username: str, password: str =None,
 
     try:
         # modify user
-        cmds = ['sudo', 'usermod']
         if mod_smb_groups:
+            cmds = ['sudo', 'usermod']
             smb_groups = set(_get_smb_groups(extra_smb_groups, no_default_smb_group))
             cur_sys_groups = set(_get_sys_groups(username))
             new_sys_groups = cur_sys_groups.difference(set(SMB_GROUPS)).union(smb_groups)
@@ -132,6 +134,10 @@ def mod_user(username: str, password: str =None,
             subprocess.run(cmds, check=True)
 
         if mod_password:
+            cmds = ['sudo', 'usermod']
+            cmds.extend(['-p', crypt.crypt(password)])
+            cmds.append(username)
+            subprocess.run(cmds, check=True)
             _set_smb_password(username, password)
 
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired):

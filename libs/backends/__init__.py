@@ -1,8 +1,11 @@
-import importlib.util
-import libs.config
+import crypt
 import os.path
 import re
 import sqlite3
+import spwd
+
+import importlib.util
+import libs.config
 
 
 _backends = None
@@ -26,6 +29,28 @@ def _get_backends():
         spec.loader.exec_module(mod)
         _backends.append(mod)
     return _backends
+
+
+def auth_user(username: str, password: str) -> bool:
+    """Check whether the username is active and the password matches
+       Ref: Python Enter Password And Compare to Shadowed Password Database
+       https://stackoverflow.com/questions/15846931/python-enter-password-and-compare-to-shadowed-password-database
+    """
+    try:
+        enc_pwd = spwd.getspnam(username)[1]
+        if enc_pwd in ['NP', '!', '', None]:
+            # no password set
+            return password is None or password == ''
+        if enc_pwd in ['LK', '*']:
+            # account is locked
+            return False
+        if enc_pwd == '!!':
+            # password is expired
+            return False
+        return crypt.crypt(password, enc_pwd) == enc_pwd
+    except KeyError:
+        # user not found
+        return False
 
 
 def apply_user(username: str, **kwargs):
