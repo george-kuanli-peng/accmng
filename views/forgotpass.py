@@ -1,4 +1,6 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request
+
+import libs.mail
 
 
 bp = Blueprint('forgotpass', __name__, url_prefix='/forgotpass')
@@ -11,4 +13,14 @@ def handle_get():
 
 @bp.route('/', methods=['POST'])
 def handle_post():
-    pass
+    try:
+        username = request.form['username']
+        email = request.form['email']
+        if username == 'XXX' and email == 'XXX@yahoo.com':
+            libs.mail.send_msg(email, '忘記密碼', '忘記密碼連結')
+        else:
+            raise ValueError('username and email not match!')
+    except (ValueError, KeyError) as err:
+        return str(err)
+
+    return '信件己送出，請收信。如果在 10 分鐘內沒收到，請試著在垃圾信件匣尋找。'
