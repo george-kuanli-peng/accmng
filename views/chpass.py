@@ -33,7 +33,7 @@ def _validate(username: str, pass_orig: str, pass_new: str, pass_confirm: str):
     if not username:
         raise ValueError('使用者名稱輸入錯誤')
 
-    if not libs.backends.auth_user(username, pass_orig):
+    if not libs.backends.auth_user_pass(username, pass_orig):
         raise ValueError('目前密碼輸入錯誤')
 
     if not pass_new:

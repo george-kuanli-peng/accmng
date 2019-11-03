@@ -5,7 +5,9 @@ import sqlite3
 import spwd
 
 import importlib.util
+
 import libs.config
+import libs.db
 
 
 _backends = None
@@ -31,7 +33,7 @@ def _get_backends():
     return _backends
 
 
-def auth_user(username: str, password: str) -> bool:
+def auth_user_pass(username: str, password: str) -> bool:
     """Check whether the username is active and the password matches
        Ref: Python Enter Password And Compare to Shadowed Password Database
        https://stackoverflow.com/questions/15846931/python-enter-password-and-compare-to-shadowed-password-database
@@ -50,6 +52,15 @@ def auth_user(username: str, password: str) -> bool:
         return crypt.crypt(password, enc_pwd) == enc_pwd
     except KeyError:
         # user not found
+        return False
+
+
+def auth_user_mail(username: str, email: str) -> bool:
+    try:
+        uid = libs.db.get_uid(username)
+        user_info = libs.db.get_user(uid, ['email'])
+        return user_info['email'] == email
+    except ValueError:
         return False
 
 

@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request
 
+import libs.backends
 import libs.mail
 
 
@@ -16,7 +17,7 @@ def handle_post():
     try:
         username = request.form['username']
         email = request.form['email']
-        if username == 'XXX' and email == 'XXX@yahoo.com':
+        if libs.backends.auth_user_mail(username, email):
             libs.mail.send_msg(email, '忘記密碼', '忘記密碼連結')
         else:
             raise ValueError('username and email not match!')

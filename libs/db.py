@@ -1,9 +1,13 @@
 import os
 import sqlite3
 
+from typing import List
+
 from libs import config
 from libs import backends
 
+
+__user_visible_attrs = {'uid', 'username', 'fullname', 'email'}
 __db_conn = None
 
 
@@ -79,8 +83,26 @@ def _check_user_exists(username: str) -> bool:
 
 def get_uid(username: str) -> int:
     conn = get_db_conn()
+    if not _check_user_exists(username):
+        raise ValueError('user %s does not exist' % username)
     uid = conn.execute('SELECT uid FROM USERS WHERE username=?', (username,)).fetchone()[0]
     return uid
+
+
+def get_user(uid: int, get_attrs: List[str] = None) -> dict:
+    if get_attrs:
+        get_attrs = [attr for attr in get_attrs if attr in __user_visible_attrs]
+    else:
+        get_attrs = list(__user_visible_attrs)
+
+    conn = get_db_conn()
+    cur = conn.execute('''SELECT %s FROM USERS WHERE uid=?''' % ','.join(get_attrs), (uid,))
+    try:
+        row = cur.fetchone()
+        attrs = {col_names[0]: row[col_idx] for col_idx, col_names in enumerate(cur.description)}
+        return attrs
+    except TypeError:
+        raise ValueError('user %d does not exist' % uid)
 
 
 def apply_user(username: str, fullname: str = None, email: str = None, **kwargs):
