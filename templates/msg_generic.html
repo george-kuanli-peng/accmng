@@ -1,0 +1,12 @@
+{% extends "user_base.html" %}
+{% block title %}訊息{% endblock %}
+{% block main_title %}<h1>訊息</h1>{% endblock %}
+{% block content %}
+{% if msg_success is defined %}<div class="alert alert-success">{{ msg_success }}</div>
+{% elif msg_info is defined %}<div class="alert alert-info">{{ msg_info }}</div>
+{% elif msg_warning is defined %}<div class="alert alert-warning">{{ msg_warning }}</div>
+{% elif msg_warn is defined %}<div class="alert alert-warning">{{ msg_warn }}</div>
+{% elif msg_error is defined %}<div class="alert alert-danger">{{ msg_error }}</div>
+{% elif msg_danger is defined %}<div class="alert alert-danger">{{ msg_error }}</div>
+{% endif %}
+{% endblock %}

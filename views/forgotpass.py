@@ -4,6 +4,7 @@ import random
 
 from flask import Blueprint, render_template, request
 
+import views
 import libs.backends
 import libs.backends.webportal
 import libs.config
@@ -26,7 +27,7 @@ def handle_post():
         email = request.form['email']
 
         if not libs.backends.auth_user_mail(username, email):
-            raise ValueError('username and email not match!')
+            raise views.WebPortalError('*使用者與名稱* 與 *信箱* 不符合!')
 
         uid = libs.db.get_uid(username)
         reset_pass_len = 6
@@ -43,7 +44,7 @@ def handle_post():
             '重設密碼連結如下 (%d 分鐘內有效):\n' % math.floor(action_ret['valid_period']/60) +
             '%s/forgotpass/reset/uid=%d&p=%s' % (base_url, uid, reset_pass)
         )
-    except (ValueError, KeyError) as err:
+    except (views.WebPortalError, ValueError, KeyError):
         raise
 
-    return '信件己送出，請收信。如果沒收到，請試著在垃圾信件匣尋找。'
+    return render_template('msg_generic.html', msg_info='信件己送出，請收信。如果沒收到，請試著在垃圾信件匣尋找。')
