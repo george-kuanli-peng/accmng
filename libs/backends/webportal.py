@@ -45,16 +45,25 @@ def db_apply_user(conn: sqlite3.Connection, username: str, uid: int = None, **kw
     pass
 
 
-def create_user_action(username: str, action_type: UserAction, parm: str = None, valid_period: float = None):
+def create_user_action(uid: int, action_type: UserAction, parm: str = None, valid_period: float = None):
     if parm is None:
         parm = ''
     if valid_period is None:
         valid_period = get_default_user_action_valid_period()
 
+    create_time = datetime.datetime.now()
+    valid_until = create_time + datetime.timedelta(seconds=valid_period)
+
     conn = libs.db.get_db_conn()
     conn.execute('''INSERT INTO
         WEB_USER_ACTION (uid, action_type, create_time, valid_until, parm)
-        VALUES (?,?,?,?,?)''')
+        VALUES (?,?,?,?,?)''',
+                 (uid, action_type, create_time, valid_until, parm))
+
+    return {
+        'valid_period': valid_period,
+        'valid_until': valid_until
+    }
 
 
 # noinspection PyUnusedLocal
